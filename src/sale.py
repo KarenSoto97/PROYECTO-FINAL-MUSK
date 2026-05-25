@@ -7,7 +7,7 @@ class Sale():
 
     Args:
         sale_id (int): unique sale id.
-        client_id (int): client id (external key)
+        client_id (int): client id (external key).
         product (str): name of the product.
         category (str): product category (electronics, accessories, ...)
         amount (float): sale amount of money.
@@ -22,7 +22,6 @@ class Sale():
         self.category = category
         self.amount = amount
         self.date = date
-
 
     def to_dict(self):
 
