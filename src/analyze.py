@@ -5,107 +5,201 @@ from client import Client
 from sale import Sale
 from client_collection import ClientCollection
 from sales_collection import SalesCollection
+from functional_utils import filter_sales_by_category
 
-# Read files:
+# Final report
 
-path_client = r"C:\Users\prisc\OneDrive\Python_new\1. Python\Módulo 7_2\PROYECTO-FINAL-MUSK\data\clients.json"
-path_sales = r"C:\Users\prisc\OneDrive\Python_new\1. Python\Módulo 7_2\PROYECTO-FINAL-MUSK\data\sales.csv"
+def generate_report():
 
-with open(path_client, 'r', encoding='utf-8') as data:
-    data_clients = json.load(data)
+    """
+    Generate a complete report of clients and sales data.
 
-data_sales_df = pd.read_csv(path_sales)
-data_sales_dict = data_sales_df.to_dict(orient="records")
+    Returns:
+        dict: A dictionary containing the full report with all the data.
+    """  
 
-# Client list:
+    # Read files:
 
-client_list = []
+    path_client = r"C:\Users\prisc\OneDrive\Python_new\1. Python\Módulo 7_2\PROYECTO-FINAL-MUSK\data\clients.json"
+    path_sales = r"C:\Users\prisc\OneDrive\Python_new\1. Python\Módulo 7_2\PROYECTO-FINAL-MUSK\data\sales.csv"
 
-for client in data_clients:
+    with open(path_client, 'r', encoding='utf-8') as data:
+        data_clients = json.load(data)
 
-    client_id = client.get('client_id')
-    name = client.get('name')
-    country = client.get('country')
-    signup_date = client.get('signup_date')
+    data_sales_df = pd.read_csv(path_sales)
+    data_sales_dict = data_sales_df.to_dict(orient="records")
 
-    new_client = Client(client_id=client_id, name=name, country=country, signup_date=signup_date)
-    client_list.append(new_client)
+    # Client list:
 
-client_collection = ClientCollection(client_list=client_list)
+    client_list = []
 
-# Sales list:
+    for client in data_clients:
 
-sales_list = []
+        client_id = client.get('client_id')
+        name = client.get('name')
+        country = client.get('country')
+        signup_date = client.get('signup_date')
 
-for sale in data_sales_dict:
+        new_client = Client(client_id=client_id, name=name, country=country, signup_date=signup_date)
+        client_list.append(new_client)
 
-    sale_id = sale.get('sale_id')
-    client_id = sale.get('client_id')
-    product = sale.get('product')
-    category = sale.get('category')
-    amount = sale.get('amount')
-    date = sale.get('date')
+    client_collection = ClientCollection(client_list=client_list)
 
-    new_sale = Sale(sale_id=sale_id, client_id=client_id, product=product, category=category, amount=amount, date=date)
-    sales_list.append(new_sale)
+    # Sales list:
 
-sales_collection = SalesCollection(sales_list=sales_list)
+    sales_list = []
 
-# 1. Number of clients
+    for sale in data_sales_dict:
 
-total_num_clients = len(client_list)
+        sale_id = sale.get('sale_id')
+        client_id = sale.get('client_id')
+        product = sale.get('product')
+        category = sale.get('category')
+        amount = sale.get('amount')
+        date = sale.get('date')
 
-# 2. Number of sales
+        new_sale = Sale(sale_id=sale_id, client_id=client_id, product=product, category=category, amount=amount, date=date)
+        sales_list.append(new_sale)
 
-total_num_sales = data_sales_df.shape[0]
+    sales_collection = SalesCollection(sales_list=sales_list)
 
-# 3. Total income by client:
+    # 1. Number of clients
 
-total_income_by_client = {}
+    total_num_clients = len(client_list)
 
-for client in client_list:
-    client_id = client.client_id
-    total_income = sales_collection.total_amount_by_client(client_id=client_id)
-    total_income_by_client[client_id] = total_income
+    # 2. Number of sales
 
-# 4. Number of sales by client
+    total_num_sales = data_sales_df.shape[0]
 
-num_sales_by_client = {}
+    # 3. Total income by client:
 
-for client in client_list:
-    client_id = client.client_id
-    num_sales = len(sales_collection.sales_by_client(client_id=client_id))
-    num_sales_by_client[client_id] = num_sales
+    total_income_by_client = {}
 
-# 5. Average sale by client
+    for client in client_list:
+        client_id = client.client_id
+        total_income = sales_collection.total_amount_by_client(client_id=client_id)
+        total_income_by_client[client_id] = total_income
 
-average_sale_by_client = {}
+    # 4. Number of sales by client
 
-for client in client_list:
-    client_id = client.client_id
-    mean_sales = sales_collection.average_sale_by_client(client_id=client_id)
-    average_sale_by_client[client_id] = mean_sales
+    num_sales_by_client = {}
 
-# 6. Highest spending client by country
+    for client in client_list:
+        client_id = client.client_id
+        num_sales = len(sales_collection.sales_by_client(client_id=client_id))
+        num_sales_by_client[client_id] = num_sales
 
-countries = {c.country for c in client_list}
-best_client_by_country = {}
+    # 5. Average sale by client
 
-for country in countries:
+    average_sale_by_client = {}
 
-    best_amount = 0
-    best_client_id = 0
+    for client in client_list:
+        client_id = client.client_id
+        mean_sales = sales_collection.average_sale_by_client(client_id=client_id)
+        average_sale_by_client[client_id] = mean_sales
 
-    country_clients = client_collection.clients_by_country(country=country)
-   
-    for client_obj in country_clients:
-        client_id = client_obj.client_id
-        current_amount = sales_collection.total_amount_by_client(client_id)
+    # 6. Highest spending client by country
 
-        if current_amount > best_amount:
-            best_amount = current_amount
-            best_client_id = client_id
+    countries = {c.country for c in client_list}
+    best_client_by_country = {}
+
+    for country in countries:
+
+        best_amount = 0
+        best_client_name = None
+
+        country_clients = client_collection.clients_by_country(country=country)
     
-    best_client_by_country[country] = (best_client_id, best_amount)
+        for client_obj in country_clients:
+            client_id = client_obj.client_id
+            client_name = client_obj.name
+            current_amount = sales_collection.total_amount_by_client(client_id)
 
+            if current_amount > best_amount:
+                best_amount = current_amount
+                best_client_name = client_name
+        
+        best_client_by_country[country] = best_client_name
+
+    # 7. Total sale by category
+
+    sales_by_category = data_sales_df.groupby('category')['amount'].sum()
+    sales_by_category_dict = sales_by_category.to_dict()
+
+    # 8. Client with the most sales in a specific category
+
+    categories = {s.category for s in sales_list}
+    best_client_by_category = {}
+
+    for category in categories:
+        sales_category = filter_sales_by_category(sales=sales_list, category=category)
+        filtered_sales_collection = SalesCollection(sales_category)
+
+        best_client_id = 0
+        max_num_sales = 0
+
+        for client in client_list:
+            client_id = client.client_id
+            num_sales = len(filtered_sales_collection.sales_by_client(client_id=client_id))
+
+            if num_sales > max_num_sales:
+                max_num_sales = num_sales
+                best_client_id = client_id
+
+        best_client_by_category[category] = (best_client_id, max_num_sales)
+
+    # 9. clients who exceed a minimum amount spent
+
+    min_spent_threshold = 500
+    high_spending_clients = []
+
+    for client in client_list:
+
+        client_id = client.client_id  
+        client_name = client.name
+        amount_spent = sales_collection.total_amount_by_client(client_id=client_id)
+
+        if amount_spent >= min_spent_threshold:
+            high_spending_clients.append(client_name)
+
+    # 10. Accumulated sales by month
+
+    data_sales_df['date'] = pd.to_datetime(data_sales_df['date'])
+    data_sales_df['date'] = data_sales_df['date'].dt.to_period('M')
+
+    sales_by_month = data_sales_df.groupby('date')['amount'].sum()
+
+    sales_cumulative = sales_by_month.cumsum()
+
+    sales_cumulative_dict = {}
+
+    for period, amount in sales_cumulative.items():
+
+        sales_cumulative_dict[str(period)] =  amount
+
+    # Extra report
+
+    total_revenue = data_sales_df['amount'].sum()
+
+    clients_report = []
+
+    for client in client_list:
+        client_data = {}
+        client_data['client_id'] = client.client_id
+        client_data['name'] = client.name
+        client_data['total_spent'] = total_income_by_client[client.client_id]
+        client_data['sale_count'] = num_sales_by_client[client.client_id]
+        client_data['average_sale'] = round(average_sale_by_client[client.client_id], 2)
+        clients_report.append(client_data)  
+
+    report = {
+    'summary': {'total_clients': total_num_clients, 'total_sales': total_num_sales, 'total_revenue': total_revenue},
+    'clients': clients_report, 
+    'top_client_by_country': best_client_by_country,
+    'sales_by_category': sales_by_category_dict,
+    'high_spending_clients': high_spending_clients,
+    'monthly_sales': sales_cumulative_dict
+    }
+
+    return report
 
